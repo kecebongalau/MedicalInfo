@@ -1,6 +1,11 @@
+-- RLS For Doctor
+ALTER SECURITY POLICY [MIS_SecurityPolicy]   
+ADD FILTER PREDICATE 
+[Security].[fn_securitypredicate](DrID) 
+ON [dbo].[Doctor] 
+
 -- USING VIEWS 
 -- view for doctor data
-
 CREATE VIEW ViewDoctorData
 AS
 SELECT DrID, DName, DPhone
@@ -12,7 +17,7 @@ ALTER VIEW ViewDiagnosisData
 AS
 SELECT DiagID, PatientID, DoctorID, DiagnosisDate, CONVERT(VARCHAR, DECRYPTBYCERT(CERT_ID('CertForCLE'), Diagnosis)) as Diagnosis
 FROM Diagnosis
-WHERE DoctorID = USER_NAME();
+WHERE DoctorID = USER_NAME() OR PatientID = USER_NAME();
 GO
 -- view for all diagnosis data
 ALTER VIEW ViewAllDiagnosisData
@@ -30,12 +35,16 @@ GO
 
 -- proc to update doctor data
 ALTER PROCEDURE sp_UpdateDoctorData
-    @DName VARCHAR(100),
-    @DPhone VARBINARY(MAX)
+	@DName VARCHAR(100) = NULL,
+    @DPhone VARCHAR(MAX) = NULL,
+	@DPass VARCHAR(MAX) = NULL
+
 AS
 BEGIN
     UPDATE Doctor
-    SET DName = @DName, DPhone = @DPhone
+    SET DName = COALESCE(@DName, DName),
+        DPhone = COALESCE(@DPhone, DPhone),
+		 DPass = COALESCE(HASHBYTES('SHA2_256',@DPass), DPass)
     WHERE DrID = USER_NAME();
 END;
 
@@ -48,9 +57,10 @@ BEGIN
     INSERT INTO Diagnosis (PatientID, DoctorID, DiagnosisDate, Diagnosis)
     VALUES (@PatientID, USER_NAME(), GETDATE(), ENCRYPTBYCERT(CERT_ID('CertForCLE'), @Diagnosis));
 END;
-GO
+
+-- proc to update diagnosis data
 ALTER PROCEDURE sp_UpdateDiagnosisData
-    @DiagID VARCHAR(MAX),
+    @DiagID int,
     @Diagnosis VARCHAR(MAX),
 	@Password VARCHAR(MAX)
 AS
@@ -76,6 +86,7 @@ GRANT EXEC ON sp_UpdateDiagnosisData TO Doctor;
 GRANT EXEC ON sp_AddDiagnosis TO Doctor;
 GRANT SELECT ON ViewDoctorData TO Doctor;
 GRANT SELECT ON ViewDiagnosisData TO Doctor;
+GRANT SELECT ON ViewDiagnosisData TO Patients;
 GRANT SELECT ON ViewAllDiagnosisData TO Doctor;
 GRANT SELECT ON ViewPatientData TO Doctor;
 GRANT UNMASK TO Doctor;
