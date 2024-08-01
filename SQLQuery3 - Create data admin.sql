@@ -22,17 +22,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON Doctor TO Data_Admin;
 DENY SELECT, UPDATE ON Doctor(DPhone, DPass) TO Data_Admin
 GRANT INSERT ON DCLAudit To Data_Admin;
 GO
+ALTER SERVER ROLE securityadmin ADD MEMBER DA001;
 
-
-
-
-CREATE Table Test(
-PID varchar(6) primary key,
-);
-
-ALTER TABLE Test
-ADD Ptest varchar(10)
-DROP Table Test
-
-DROP USER DA01
 
