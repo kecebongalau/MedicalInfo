@@ -9,7 +9,7 @@ RETURNS TABLE
 WITH SCHEMABINDING  
 AS  
    RETURN SELECT 1 AS fn_securitypredicate_result
-   WHERE @UserName = USER_NAME() OR USER_NAME() = 'dbo';
+   WHERE @UserName = USER_NAME() OR USER_NAME() = 'dbo' OR USER_NAME() = 'data_admin';
 GO
 
 CREATE SECURITY POLICY [SMS_SecurityPolicy]   
