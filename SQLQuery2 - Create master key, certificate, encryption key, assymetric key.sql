@@ -32,6 +32,17 @@ Create master key encryption by password = 'QwErTy12345!@#$%'
 CREATE ASYMMETRIC KEY MyAsymKey
 WITH ALGORITHM = RSA_2048 
 
+--create DEK in the MedicalInfoSystem
+USE MedicalInfoSystem; 
+Create master key encryption by password = 'QwErTy12345!@#$%'
+
+CREATE CERTIFICATE CertForCLE WITH SUBJECT = 'CertForCLE';
+
+CREATE SYMMETRIC KEY SimKey1
+WITH ALGORITHM = AES_256  
+ENCRYPTION BY CERTIFICATE CertForCLE
+
+
 
 
 
