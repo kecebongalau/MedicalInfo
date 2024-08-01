@@ -29,7 +29,7 @@ GO
 
 
 -- proc to update doctor data
-CREATE PROCEDURE sp_UpdateDoctorData
+ALTER PROCEDURE sp_UpdateDoctorData
     @DName VARCHAR(100),
     @DPhone VARBINARY(MAX)
 AS
@@ -38,7 +38,6 @@ BEGIN
     SET DName = @DName, DPhone = @DPhone
     WHERE DrID = USER_NAME();
 END;
-GO
 -- proc to add diagnosis
 ALTER PROCEDURE sp_AddDiagnosis
     @PatientID VARCHAR(6),
