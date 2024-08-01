@@ -38,18 +38,17 @@ BEGIN
     SET DName = @DName, DPhone = @DPhone
     WHERE DrID = USER_NAME();
 END;
+
 -- proc to add diagnosis
 ALTER PROCEDURE sp_AddDiagnosis
     @PatientID VARCHAR(6),
-    @DiagnosisDate DATETIME,
     @Diagnosis VARCHAR(MAX)
 AS
 BEGIN
     INSERT INTO Diagnosis (PatientID, DoctorID, DiagnosisDate, Diagnosis)
-    VALUES (@PatientID, USER_NAME(), @DiagnosisDate, ENCRYPTBYCERT(CERT_ID('CertForCLE'), @Diagnosis));
+    VALUES (@PatientID, USER_NAME(), GETDATE(), ENCRYPTBYCERT(CERT_ID('CertForCLE'), @Diagnosis));
 END;
 GO
--- proc to update diagnosis data
 ALTER PROCEDURE sp_UpdateDiagnosisData
     @DiagID VARCHAR(MAX),
     @Diagnosis VARCHAR(MAX),
@@ -59,7 +58,9 @@ BEGIN
 	IF EXISTS (SELECT 1 FROM Doctor WHERE DrID = USER_NAME() AND DPass = HASHBYTES('SHA2_256',@Password))
 	BEGIN
 		UPDATE Diagnosis
-		SET Diagnosis = ENCRYPTBYCERT(CERT_ID('CertForCLE'), @Diagnosis)
+		SET Diagnosis = ENCRYPTBYCERT(CERT_ID('CertForCLE'), @Diagnosis),
+		DiagnosisDate = GETDATE()
+
 		WHERE DiagID = @DiagID AND DoctorID = USER_NAME();
 	END
 	ELSE
