@@ -3,19 +3,19 @@
 CREATE SCHEMA Security;  
 GO  
 
-CREATE FUNCTION Security.fn_securitypredicate
+CCREATE FUNCTION Security.fn_securitypredicate
 	(@UserName AS nvarchar(100))  
 RETURNS TABLE  
 WITH SCHEMABINDING  
 AS  
    RETURN SELECT 1 AS fn_securitypredicate_result
-   WHERE @UserName = USER_NAME() OR USER_NAME() = 'dbo' OR USER_NAME() = 'data_admin';
+   WHERE @UserName = USER_NAME() OR USER_NAME() = 'dbo' OR USER_NAME() = 'DA001';
 GO
 
-CREATE SECURITY POLICY [SMS_SecurityPolicy]   
+CREATE SECURITY POLICY [MIS_SecurityPolicy]   
 ADD FILTER PREDICATE 
 [Security].[fn_securitypredicate](PID) 
-ON [dbo].[Patient] 
+ON [dbo].[Patient]
 
 -- RLS using view
 Create Procedure GetCustomerData
