@@ -1,7 +1,20 @@
 USE MedicalInfoSystem;
 GO
 
-CREATE PROCEDURE CreateDoctorLoginUserAndRecord
+CREATE ROLE Doctor;
+-- ROLE PERMISSION
+
+GRANT SELECT, UPDATE ON Doctor TO Doctor;
+GRANT SELECT, INSERT, UPDATE ON Diagnosis TO Doctor;
+
+
+CREATE ROLE Patients;
+-- ROLE PERMISSION
+
+GRANT SELECT ON Diagnosis TO Patients;
+GRANT SELECT, UPDATE ON Patient TO Patients;
+
+ALTER PROCEDURE CreateDoctorLoginUserAndRecord
     @DrID NVARCHAR(6) = NULL,  -- Optional input
     @DName NVARCHAR(100),
     @Password NVARCHAR(128)
@@ -77,11 +90,10 @@ GO
 
 
 
-
 USE MedicalInfoSystem;
 GO
 
-CREATE PROCEDURE CreatePatientLoginUserAndRecord
+ALTER PROCEDURE CreatePatientLoginUserAndRecord
     @PName NVARCHAR(100),
     @Password NVARCHAR(128),
     @PID NVARCHAR(6) = NULL  -- Optional input
@@ -163,7 +175,7 @@ END
 GO
 
 
-
+SELECT * FROM Diagnosis
 
 
 -- Grant EXECUTE permission on the stored procedure to Data_Admin role
@@ -173,32 +185,11 @@ GO
 GRANT EXECUTE ON OBJECT::CreatePatientLoginUserAndRecord TO Data_Admin;
 GO
 
-SELECT dp1.name AS RoleName,
-       dp2.name AS MemberName
-FROM sys.database_role_members drm
-JOIN sys.database_principals dp1
-    ON drm.role_principal_id = dp1.principal_id
-JOIN sys.database_principals dp2
-    ON drm.member_principal_id = dp2.principal_id
-WHERE dp2.name = 'Data_Admin';
-
-
-SELECT 
-    prin.name AS PrincipalName,
-    perm.permission_name AS PermissionName,
-    perm.state_desc AS State,
-    obj.name AS ObjectName,
-    obj.type_desc AS ObjectType
-FROM 
-    sys.database_permissions perm
-JOIN 
-    sys.database_principals prin
-    ON perm.grantee_principal_id = prin.principal_id
-LEFT JOIN 
-    sys.objects obj
-    ON perm.major_id = obj.object_id
-WHERE 
-    prin.name = 'Data_Admin';
-
-REVOKE SELECT ON OBJECT::dbo.ViewDoctorData TO Data_Admin;
-SELECT * FROM Patient_History
+-- Checking the role membership
+SELECT roles.[name] as role_name, members.[name] as user_name
+FROM sys.database_role_members 
+INNER JOIN sys.database_principals roles 
+ON database_role_members.role_principal_id = roles.principal_id
+INNER JOIN sys.database_principals members 
+ON database_role_members.member_principal_id = members.principal_id
+WHERE roles.name in ('Data_Admin','Doctor', 'Patients')
