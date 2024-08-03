@@ -10,6 +10,17 @@ CREATE DATABASE ENCRYPTION KEY
 WITH ALGORITHM = AES_256
 ENCRYPTION BY SERVER CERTIFICATE CertForTDE;
 
+-- Backup Certificate
+USE master;
+
+Go
+BACKUP CERTIFICATE CertForTDE
+TO FILE = N'C:\kuliah\year 3\logs\CertForTDE.cert'
+WITH PRIVATE KEY (
+    FILE = N'C:\kuliah\year 3\logs\CertForTDE.key', 
+	ENCRYPTION BY PASSWORD = 'password'
+);
+
 --set encryption on
 ALTER DATABASE MedicalInfoSystem
 SET ENCRYPTION ON;
@@ -38,6 +49,7 @@ Create master key encryption by password = 'QwErTy12345!@#$%'
 
 CREATE CERTIFICATE CertForCLE WITH SUBJECT = 'CertForCLE';
 
+-- create symmetric key
 CREATE SYMMETRIC KEY SimKey1
 WITH ALGORITHM = AES_256  
 ENCRYPTION BY CERTIFICATE CertForCLE
