@@ -23,7 +23,7 @@ EXEC sp_add_schedule
     @freq_interval = 1,  -- Every day
     @freq_subday_type = 8,  -- Hours
     @freq_subday_interval = 6,  -- Every 6 hours
-    @active_start_time = 143630;  -- Start at midnight (optional, change if needed)
+    @active_start_time = 000000;  
 GO
 
 
@@ -32,8 +32,6 @@ EXEC sp_attach_schedule
     @schedule_name = N'Every6HoursScheduleBackup_New';
 GO
 
-USE msdb;
-GO
 
 USE msdb;
 GO
@@ -66,3 +64,10 @@ WHERE
     database_name = 'MedicalInfoSystem'
 ORDER BY 
     backup_start_date DESC;
+
+USE msdb;
+GO
+
+
+
+
