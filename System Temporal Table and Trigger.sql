@@ -12,23 +12,21 @@ SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.Patient_History));
 
 
 -- TESTING
-SELECT * FROM Patient
+SELECT * FROM Doctor
 
 
 UPDATE Patient
 SET PName = 'Gus Jake'
 WHERE PID = 'P001';
 
+SELECT * FROM Patient
 SELECT * FROM Patient_History;
 
-SELECT * 
-FROM Patient 
-FOR SYSTEM_TIME FROM '2024-07-24T00:00:00.0000000' TO '2024-07-26T00:00:00.0000000';
 
 -- RESTORING
 -- Step 1: Identify the specific version to restore
-DECLARE @PID VARCHAR(6) = 'P002';
-DECLARE @RestoreTime DATETIME2 = '2024-07-25 07:09:08.6964254';
+DECLARE @PID VARCHAR(6) = 'P001';
+DECLARE @RestoreTime DATETIME2 = '2024-07-27 13:23:38.1524581';
 
 -- Step 2: Insert the entry back into the current table
 UPDATE Patient
@@ -67,15 +65,6 @@ BEGIN
 	END
 END;
 
---TESTING
-INSERT INTO Doctor (DrID, DName, DPhone) 
-VALUES ('D001', 'Dr. John Doe', '123-456-7890');
-
-INSERT INTO Doctor (DrID, DName, DPhone) 
-VALUES ('D002', 'Dr. Alice Smith', '987-654-3210');
-
-INSERT INTO Doctor (DrID, DName, DPhone) 
-VALUES ('D003', 'Dr. Robert Brown', '555-123-4567');
 
 
 SELECT * FROM Doctor;
@@ -169,3 +158,67 @@ ALTER TABLE Diagnosis
 SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.Diagnosis_History));
 
 select * from Diagnosis
+
+SELECT * FROM Diagnosis_History
+
+USE MedicalInfoSystem;
+
+CREATE TABLE DDLAudit (
+    EventID INT IDENTITY(1,1) PRIMARY KEY,
+    ActionType NVARCHAR(50),
+    ActionTime DATETIME DEFAULT GETDATE(),
+    Username NVARCHAR(128),
+    EventData XML
+);
+
+CREATE TABLE DCLAudit (
+    EventID INT IDENTITY(1,1) PRIMARY KEY,
+    ActionType NVARCHAR(50),
+    ActionTime DATETIME DEFAULT GETDATE(),
+    Username NVARCHAR(128),
+    EventData XML
+);
+
+-- Creating DDL Audit
+USE MedicalInfoSystem;
+
+ALTER TRIGGER trgDDLAudit
+ON DATABASE
+FOR CREATE_TABLE, ALTER_TABLE, DROP_TABLE, CREATE_PROCEDURE, ALTER_PROCEDURE, DROP_PROCEDURE, CREATE_TRIGGER, ALTER_TRIGGER, DROP_TRIGGER, CREATE_VIEW, ALTER_VIEW, DROP_VIEW
+AS
+BEGIN
+    -- Insert into audit table for DDL actions only if in the specific database
+    IF DB_NAME() = 'MedicalInfoSystem'
+    BEGIN
+        INSERT INTO DDLAudit (ActionType, ActionTime, Username, EventData)
+        SELECT
+            EVENTDATA().value('(/EVENT_INSTANCE/EventType)[1]', 'NVARCHAR(50)') AS ActionType,
+            GETDATE() AS ActionTime,
+            USER_NAME() AS Username,
+            EVENTDATA() AS EventData;
+    END
+END;
+
+-- Creating DCL Audit
+USE MedicalInfoSystem;
+CREATE TRIGGER trgDCLAudit
+ON DATABASE
+FOR GRANT_DATABASE, REVOKE_DATABASE, DENY_DATABASE
+AS
+BEGIN
+    -- Insert into audit table for DCL actions only if in the specific database
+    IF DB_NAME() = 'MedicalInfoSystem'
+    BEGIN
+        INSERT INTO DCLAudit (ActionType, ActionTime, Username, EventData)
+        SELECT
+            EVENTDATA().value('(/EVENT_INSTANCE/EventType)[1]', 'NVARCHAR(50)') AS ActionType,
+            GETDATE() AS ActionTime,
+            USER_NAME() AS Username,
+            EVENTDATA() AS EventData;
+    END
+END;
+
+select * from DCLAudit
+select * from DDLAudit
+
+
